@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { Heart, Minus, Plus, Truck, RotateCcw, Loader2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +11,10 @@ import { toast } from '@/components/ui/sonner'
 import { resolveImageUrl, imgFallback } from '@/lib/utils'
 import Loader from '@/components/common/Loader'
 import ProductCard from '@/components/common/ProductCard'
+import {
+  Pagination, PaginationContent, PaginationItem,
+  PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis,
+} from '@/components/ui/pagination'
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL']
 
@@ -29,6 +33,8 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1)
   const [selectedColor, setSelectedColor] = useState<number | null>(null)
   const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [relatedPage, setRelatedPage] = useState(1)
+  const RELATED_PER_PAGE = 4
 
   useEffect(() => {
     if (id) {
@@ -43,6 +49,16 @@ const ProductDetailPage = () => {
     setQuantity(1)
     if (product?.colors?.length) setSelectedColor(product.colors[0].id)
   }, [product?.id])
+
+  const relatedProducts = useMemo(
+    () => products.filter((p) => p.id !== product?.id),
+    [products, product?.id]
+  )
+  const totalRelatedPages = Math.ceil(relatedProducts.length / RELATED_PER_PAGE)
+  const pagedRelated = relatedProducts.slice(
+    (relatedPage - 1) * RELATED_PER_PAGE,
+    relatedPage * RELATED_PER_PAGE
+  )
 
   if (loading) return <Loader fullScreen />
   if (!product) return (
@@ -255,17 +271,73 @@ const ProductDetailPage = () => {
         </div>
       </div>
 
-      {products.length > 0 && (
+      {relatedProducts.length > 0 && (
         <section className="mt-32 mb-20">
           <div className="flex items-center gap-4 mb-10">
             <span className="w-5 h-10 bg-[#DB4444] rounded block" />
             <h2 className="text-xl font-bold font-inter text-[#DB4444] tracking-tight">{t('product.related_products')}</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-            {products.filter((p) => p.id !== product.id).slice(0, 4).map((p, idx) => (
+            {pagedRelated.map((p, idx) => (
               <ProductCard key={p.id ?? idx} product={p} />
             ))}
           </div>
+
+          {totalRelatedPages > 1 && (
+            <div className="mt-10">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setRelatedPage((prev) => Math.max(1, prev - 1))}
+                      className={relatedPage === 1 ? 'pointer-events-none opacity-40' : ''}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalRelatedPages }, (_, i) => i + 1).map((page) => {
+                    const showPage =
+                      page === 1 ||
+                      page === totalRelatedPages ||
+                      Math.abs(page - relatedPage) <= 1
+                    const showEllipsisAfter =
+                      page === 1 && relatedPage > 3
+                    const showEllipsisBefore =
+                      page === totalRelatedPages && relatedPage < totalRelatedPages - 2
+
+                    if (showEllipsisAfter) return (
+                      <PaginationItem key={`e1-${page}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )
+                    if (showEllipsisBefore) return (
+                      <PaginationItem key={`e2-${page}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    )
+                    if (!showPage) return null
+
+                    return (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          isActive={relatedPage === page}
+                          onClick={() => setRelatedPage(page)}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  })}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setRelatedPage((prev) => Math.min(totalRelatedPages, prev + 1))}
+                      className={relatedPage === totalRelatedPages ? 'pointer-events-none opacity-40' : ''}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </section>
       )}
     </div>
