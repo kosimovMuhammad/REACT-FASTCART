@@ -69,7 +69,10 @@ const ProductDetailPage = () => {
     setTimeout(() => setIsAddingToCart(false), 800)
   }
 
-  const galleryImages = product.images?.length > 0 ? product.images.slice(0, 4) : []
+  const rawImgs = product.images ?? []
+  const galleryImages = rawImgs.length > 0
+    ? Array.from({ length: 4 }, (_, i) => rawImgs[i % rawImgs.length])
+    : []
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 font-poppins">

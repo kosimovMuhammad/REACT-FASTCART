@@ -1501,3 +1501,16 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 - **dark/light** — `ThemeProvider` + `localStorage`
 - **alias `@`** — `vite.config.ts` + `tsconfig.json`
 - **.env** — `VITE_API_URL` барои base URL
+
+
+---
+
+## 🚀 Автоматизация Git (Git Automation Rules)
+
+- Перед завершением каждого шага: Как только ты полностью заканчиваешь верстку, логику или адаптив любой из страниц, представленных на холсте макета (SignUp, Login, Home, Wishlist, Product Details, Cart, Checkout, Account, About, Contact, 404), обязательно запускай полную проверку проекта через npm run lint и npm run type-check.
+- Автоматический коммит и пуш: Если сборка и линтер прошли без единой ошибки, ты обязан самостоятельно, не дожидаясь подтверждения пользователя, выполнить в терминале:
+  1. git add .
+  2. git commit -m "feat: реализована страница [Название страницы] по макету и правилам Taste Skill с полным адаптивом"
+  3. git push origin main
+- Завершение: Только после успешного выполнения git push ты имеешь право остановить текущую итерацию, подробно расписать, какие компоненты и фичи были добавлены, и ожидать следующей задачи от пользователя.
+
